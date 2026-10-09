@@ -16,6 +16,7 @@ import { ExportModal } from './components/ExportModal';
 import { HegelianModal } from './components/HegelianModal';
 import { PreMortemModal } from './components/PreMortemModal';
 import { DepositionModal } from './components/DepositionModal';
+import { loadVault, saveVault, VaultSnapshot } from './lib/vaultClient';
 
 const STORAGE_KEY = 'cognivault_adversarial_notes_v4';
 
@@ -63,14 +64,47 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [demoToast]);
 
-  // Autosave to localStorage on changes
+  const [hydrated, setHydrated] = useState(false);
+  const [syncState, setSyncState] = useState<'idle' | 'saving' | 'saved' | 'local'>('idle');
+
+  // Hydrate from the server vault, then fall back to the local cache already in state.
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const remote = await loadVault();
+      if (cancelled) return;
+      if (remote && remote.notes.length > 0) {
+        setNotes(remote.notes);
+        if (remote.activeNoteId && remote.notes.some((n) => n.id === remote.activeNoteId)) {
+          setActiveNoteId(remote.activeNoteId);
+        }
+        setSyncState('saved');
+      } else {
+        setSyncState('local');
+      }
+      setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Autosave: local cache immediately, server vault after a short debounce.
+  useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
     } catch (e) {
       console.error('Failed to autosave notes to localStorage:', e);
     }
-  }, [notes]);
+    setSyncState('saving');
+    const timer = setTimeout(async () => {
+      const snapshot: VaultSnapshot = { notes, activeNoteId };
+      const ok = await saveVault(snapshot);
+      setSyncState(ok ? 'saved' : 'local');
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [notes, activeNoteId, hydrated]);
 
   // Active note
   const activeNote = useMemo(() => {
@@ -230,6 +264,9 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0A0E17] text-slate-100 select-none relative">
+      <span className="sr-only" aria-live="polite">
+        {syncState === 'saving' ? 'Saving dossier' : syncState === 'saved' ? 'Dossier saved to vault' : syncState === 'local' ? 'Dossier saved on this device only' : ''}
+      </span>
       {/* 3-Zone Top Navigation Contract with Real-Time Cognitive Telemetry & Demo Mode */}
       <TopNav
         activeNoteId={activeNoteId}
@@ -384,6 +421,12 @@ export default function App() {
           initialPersona={activePersona}
         />
       )}
+
+      <div className="fixed bottom-5 left-5 z-40 text-[10px] font-mono tracking-wide text-slate-500 pointer-events-none">
+        {syncState === 'saving' && 'Saving vault…'}
+        {syncState === 'saved' && 'Vault saved'}
+        {syncState === 'local' && 'Local only — server vault unreachable'}
+      </div>
 
       {/* Reviewer Feedback Toast */}
       {demoToast && (

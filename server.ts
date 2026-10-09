@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { readVault, writeVault } from './src/server/vaultStore';
 
 process.env.DISABLE_HMR = 'true';
 dotenv.config();
@@ -695,6 +696,28 @@ app.post('/api/citations/parse', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Citation parse error:', error);
     res.status(500).json({ error: error?.message || 'Failed to parse citation input.' });
+  }
+});
+
+// Vault persistence: notes survive restarts and browsers. File is gitignored.
+app.get('/api/vault', (_req: Request, res: Response) => {
+  try {
+    const vault = readVault();
+    res.json(vault);
+  } catch (error: any) {
+    console.error('Vault read error:', error);
+    res.status(500).json({ error: error?.message || 'Failed to read vault.' });
+  }
+});
+
+app.put('/api/vault', (req: Request, res: Response) => {
+  try {
+    const saved = writeVault(req.body || {});
+    res.json(saved);
+  } catch (error: any) {
+    const status = error?.statusCode || 400;
+    console.error('Vault write error:', error);
+    res.status(status).json({ error: error?.message || 'Failed to save vault.' });
   }
 });
 

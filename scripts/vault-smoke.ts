@@ -1,34 +1,44 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { readVault, writeVault } from '../src/server/vaultStore';
+import { readVault, restoreVaultBackup, writeVault } from '../src/server/vaultStore';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cognivault-vault-'));
 process.env.VAULT_PATH = path.join(dir, 'vault.json');
 
-const empty = readVault();
-if (empty.source !== 'empty' || empty.notes.length !== 0) {
-  throw new Error('expected empty vault');
-}
+const note = {
+  id: 'note-smoke',
+  title: 'Smoke',
+  content: 'falsify me',
+  createdAt: '2026-10-09T00:00:00.000Z',
+  updatedAt: '2026-10-09T00:00:00.000Z',
+  session: { preMortem: { analyzedAt: '2026-10-09' } },
+};
 
-const saved = writeVault({
-  notes: [{ id: 'note-smoke', title: 'Smoke', content: 'falsify me', session: { preMortem: { analyzedAt: '2026-10-09' } } }],
-  activeNoteId: 'note-smoke',
-});
-if (saved.notes.length !== 1) throw new Error('write failed');
+if (readVault().source !== 'empty') throw new Error('expected empty vault');
+writeVault({ notes: [note], activeNoteId: 'note-smoke' });
+writeVault({ notes: [{ ...note, title: 'Smoke v2' }], activeNoteId: 'note-smoke' });
 
 const loaded = readVault();
-const note = loaded.notes[0] as { session?: { preMortem?: { analyzedAt?: string } } };
-if (loaded.activeNoteId !== 'note-smoke' || note.session?.preMortem?.analyzedAt !== '2026-10-09') {
-  throw new Error('session did not round-trip');
+if (loaded.source !== 'file' || (loaded.notes[0] as { title: string }).title !== 'Smoke v2') {
+  throw new Error('round-trip failed');
 }
+if (!fs.existsSync(`${process.env.VAULT_PATH}.bak`)) throw new Error('backup was not written');
 
-let rejected = false;
-try {
-  writeVault({ notes: [{ id: 1 }] });
-} catch {
-  rejected = true;
+fs.writeFileSync(process.env.VAULT_PATH, '{not json');
+const fromBackup = readVault();
+if (fromBackup.source !== 'backup') throw new Error('corrupt vault did not fall back to backup');
+restoreVaultBackup();
+if (readVault().source !== 'file') throw new Error('restore did not rewrite the vault');
+
+for (const bad of [
+  { notes: [{ id: 1 }] },
+  { notes: [note, { ...note }] },
+  { notes: [note], activeNoteId: 'missing' },
+]) {
+  let rejected = false;
+  try { writeVault(bad); } catch { rejected = true; }
+  if (!rejected) throw new Error(`accepted bad payload ${JSON.stringify(bad).slice(0, 80)}`);
 }
-if (!rejected) throw new Error('invalid note was accepted');
 
 console.log('vault smoke ok', process.env.VAULT_PATH);

@@ -26,6 +26,8 @@ The client hydrates from `GET /api/vault` on load. If the server vault is empty,
 
 `data/vault.json` is gitignored. Do not commit case notes.
 
+Writes copy the current file to `data/vault.json.bak`, then replace it with a uniquely named temp file. A corrupt vault falls back to that backup on read. `POST /api/vault/restore` copies the backup back over the live file. Notes need a unique string `id`, string `title` and `content`, optional string timestamps, at most 200 notes, 200k characters each, 2 MB total.
+
 | Method | Path | Body |
 | --- | --- | --- |
 | GET | `/api/vault` | — |

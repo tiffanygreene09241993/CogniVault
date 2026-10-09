@@ -6,7 +6,8 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readVault, writeVault } from './src/server/vaultStore';
+import { readVault, restoreVaultBackup, writeVault } from './src/server/vaultStore';
+import { assertPromptBudget, HttpError, optionalString, requireObject } from './src/server/validate';
 
 process.env.DISABLE_HMR = 'true';
 dotenv.config();
@@ -79,10 +80,29 @@ async function callGemini(params: { contents: any; config?: any }) {
 
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
+  const vault = readVault();
   res.json({
     status: 'ok',
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    vault: { source: vault.source, notes: vault.notes.length, updatedAt: vault.updatedAt },
   });
+});
+
+app.use('/api/gemini', (req: Request, res: Response, next) => {
+  try {
+    const body = requireObject(req.body || {});
+    optionalString(body, 'title', 300);
+    optionalString(body, 'noteTitle', 300);
+    optionalString(body, 'content', 50_000);
+    optionalString(body, 'noteContent', 50_000);
+    optionalString(body, 'userMessage', 8_000);
+    optionalString(body, 'userDefense', 8_000);
+    assertPromptBudget(body, ['content', 'noteContent', 'userMessage', 'userDefense']);
+    next();
+  } catch (error) {
+    const status = error instanceof HttpError ? error.statusCode : 400;
+    res.status(status).json({ error: error instanceof Error ? error.message : 'Invalid request.' });
+  }
 });
 
 // CORE DIRECTIVE CONSTANT
@@ -718,6 +738,15 @@ app.put('/api/vault', (req: Request, res: Response) => {
     const status = error?.statusCode || 400;
     console.error('Vault write error:', error);
     res.status(status).json({ error: error?.message || 'Failed to save vault.' });
+  }
+});
+
+app.post('/api/vault/restore', (_req: Request, res: Response) => {
+  try {
+    res.json(restoreVaultBackup());
+  } catch (error: any) {
+    const status = error?.statusCode || 500;
+    res.status(status).json({ error: error?.message || 'Failed to restore vault backup.' });
   }
 });
 

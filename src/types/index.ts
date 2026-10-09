@@ -51,6 +51,33 @@ export interface DocumentNote {
   logicLintIssues: LogicLintIssue[];
   createdAt: string;
   updatedAt: string;
+  session?: NoteSession;
+}
+
+export interface DepositionExchange {
+  question: string;
+  answer: string;
+  target: string;
+}
+
+export interface DepositionRecord {
+  persona: SparringPersona;
+  round: number;
+  exchanges: DepositionExchange[];
+  currentQuestion: string | null;
+  targetVulnerability: string | null;
+  result: {
+    survivalScore: number;
+    witnessAssessment: string;
+    defenseClauses?: DefenseClause[];
+  } | null;
+  updatedAt: string;
+}
+
+export interface NoteSession {
+  sparring?: Partial<Record<SparringPersona, SparringMessage[]>>;
+  deposition?: DepositionRecord;
+  preMortem?: PreMortemReport;
 }
 
 export interface SparringMessage {

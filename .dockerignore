@@ -1,0 +1,5 @@
+node_modules
+dist
+data/vault.json
+.git
+.aistudio

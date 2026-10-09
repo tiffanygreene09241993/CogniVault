@@ -8,3 +8,5 @@ coverage/
 !.env.example
 data/vault.json
 data/vault.json.tmp
+
+.aistudio/

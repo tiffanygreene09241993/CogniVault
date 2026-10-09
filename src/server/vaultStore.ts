@@ -2,29 +2,33 @@ import fs from 'fs';
 import path from 'path';
 
 export interface VaultFile {
+  schemaVersion: 1;
   notes: unknown[];
   activeNoteId: string | null;
   updatedAt: string;
 }
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
-const VAULT_PATH = path.join(DATA_DIR, 'vault.json');
+function vaultPath(): string {
+  return process.env.VAULT_PATH || path.join(DATA_DIR, 'vault.json');
+}
 const MAX_BYTES = 2_000_000;
 const MAX_NOTES = 200;
 
 function emptyVault(): VaultFile {
-  return { notes: [], activeNoteId: null, updatedAt: new Date(0).toISOString() };
+  return { schemaVersion: 1, notes: [], activeNoteId: null, updatedAt: new Date(0).toISOString() };
 }
 
 export function readVault(): VaultFile & { source: 'file' | 'empty' } {
   try {
-    if (!fs.existsSync(VAULT_PATH)) {
+    if (!fs.existsSync(vaultPath())) {
       return { ...emptyVault(), source: 'empty' };
     }
-    const raw = fs.readFileSync(VAULT_PATH, 'utf8');
+    const raw = fs.readFileSync(vaultPath(), 'utf8');
     const parsed = JSON.parse(raw);
     const notes = Array.isArray(parsed?.notes) ? parsed.notes : [];
     return {
+      schemaVersion: 1,
       notes,
       activeNoteId: typeof parsed?.activeNoteId === 'string' ? parsed.activeNoteId : null,
       updatedAt: typeof parsed?.updatedAt === 'string' ? parsed.updatedAt : new Date(0).toISOString(),
@@ -68,6 +72,7 @@ export function writeVault(body: unknown): VaultFile {
   }
 
   const next: VaultFile = {
+    schemaVersion: 1,
     notes: record.notes,
     activeNoteId: typeof record.activeNoteId === 'string' ? record.activeNoteId : null,
     updatedAt: new Date().toISOString(),
@@ -79,9 +84,10 @@ export function writeVault(body: unknown): VaultFile {
     throw err;
   }
 
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const tmp = `${VAULT_PATH}.tmp`;
+  const target = vaultPath();
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const tmp = `${target}.tmp`;
   fs.writeFileSync(tmp, serialized, 'utf8');
-  fs.renameSync(tmp, VAULT_PATH);
+  fs.renameSync(tmp, target);
   return next;
 }

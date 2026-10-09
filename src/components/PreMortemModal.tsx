@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DocumentNote, PreMortemReport } from '../types';
+import { withSession } from '../lib/session';
 import {
   Skull,
   AlertTriangle,
@@ -30,10 +31,24 @@ export const PreMortemModal: React.FC<PreMortemModalProps> = ({
   onUpdateNote,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [report, setReport] = useState<PreMortemReport | null>(null);
+  const [report, setReport] = useState<PreMortemReport | null>(note.session?.preMortem ?? null);
+  const noteRef = useRef(note);
+  noteRef.current = note;
+  const updateRef = useRef(onUpdateNote);
+  updateRef.current = onUpdateNote;
+  const skipReportPersist = useRef(true);
   const [hasInserted, setHasInserted] = useState(false);
   const [copiedClauseIndices, setCopiedClauseIndices] = useState<Set<number>>(new Set());
   const [insertedClauseIndices, setInsertedClauseIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (skipReportPersist.current) {
+      skipReportPersist.current = false;
+      return;
+    }
+    if (!report) return;
+    updateRef.current(withSession(noteRef.current, { preMortem: report }));
+  }, [report]);
 
   if (!isOpen) return null;
 

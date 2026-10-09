@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { DocumentNote, SparringPersona, DefenseClause } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
+import { DocumentNote, SparringPersona, DefenseClause, DepositionExchange } from '../types';
+import { withSession } from '../lib/session';
 import {
   Gavel,
   Scale,
@@ -32,11 +33,16 @@ export const DepositionModal: React.FC<DepositionModalProps> = ({
   onUpdateNote,
   initialPersona = 'cross_examiner',
 }) => {
-  const [activePersona, setActivePersona] = useState<SparringPersona>(initialPersona);
-  const [round, setRound] = useState(1);
-  const [exchanges, setExchanges] = useState<Array<{ question: string; answer: string; target: string }>>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
-  const [targetVulnerability, setTargetVulnerability] = useState<string | null>(null);
+  const saved = note.session?.deposition;
+  const [activePersona, setActivePersona] = useState<SparringPersona>(saved?.persona ?? initialPersona);
+  const [round, setRound] = useState(saved?.round ?? 1);
+  const [exchanges, setExchanges] = useState<DepositionExchange[]>(saved?.exchanges ?? []);
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(saved?.currentQuestion ?? null);
+  const [targetVulnerability, setTargetVulnerability] = useState<string | null>(saved?.targetVulnerability ?? null);
+  const noteRef = useRef(note);
+  noteRef.current = note;
+  const updateRef = useRef(onUpdateNote);
+  updateRef.current = onUpdateNote;
   const [witnessDefenseInput, setWitnessDefenseInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedClauseIds, setCopiedClauseIds] = useState<Set<string>>(new Set());
@@ -47,7 +53,23 @@ export const DepositionModal: React.FC<DepositionModalProps> = ({
     survivalScore: number;
     witnessAssessment: string;
     defenseClauses?: DefenseClause[];
-  } | null>(null);
+  } | null>(saved?.result ?? null);
+
+  useEffect(() => {
+    const current = noteRef.current;
+    if (!currentQuestion && exchanges.length === 0 && !depositionResult) return;
+    updateRef.current(withSession(current, {
+      deposition: {
+        persona: activePersona,
+        round,
+        exchanges,
+        currentQuestion,
+        targetVulnerability,
+        result: depositionResult,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  }, [activePersona, round, exchanges, currentQuestion, targetVulnerability, depositionResult]);
 
   if (!isOpen) return null;
 

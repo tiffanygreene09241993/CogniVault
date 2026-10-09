@@ -85,4 +85,31 @@ data/vault.json           runtime store (gitignored)
 
 ## License
 
-Source headers use Apache-2.0.
+Apache-2.0. See `LICENSE`.
+
+
+## Session persistence
+
+Sparring turns, the deposition record, and the latest pre-mortem report are stored on the note as `session` and written through the same vault save. A refresh restores them. `session.sparring` is keyed by persona.
+
+The vault file is schema version 1. Override the path with `VAULT_PATH` if the process cannot write `data/` (containers, read-only filesystems). This app is a long-running Express server, not a serverless function: a Vercel or Cloud Run instance with an ephemeral disk will lose `data/vault.json` on restart unless you mount a volume or point `VAULT_PATH` at persistent storage.
+
+```bash
+npm run smoke:vault
+```
+
+## Deploy
+
+```bash
+docker build -t cognivault .
+docker run --env-file .env -p 3000:3000 -v cognivault-data:/app/data cognivault
+```
+
+The volume keeps the vault across container restarts. Set `GEMINI_API_KEY` in `.env`. Do not commit that file.
+
+## Demo path
+
+1. Open Demo Mode and load the eyewitness-contamination dossier. The cross-examiner is primed.
+2. Open the sparring panel and send the thesis. Adopt one inoculation clause.
+3. Run the deposition or the 3-year pre-mortem, then reload. The transcript and report should still be on the note.
+4. Export from the top bar. That export is the artifact to show, not the file tree.

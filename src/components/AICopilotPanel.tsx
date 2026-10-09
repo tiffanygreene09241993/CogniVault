@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DocumentNote, SparringPersona, SparringMessage, DefenseClause } from '../types';
+import { withSession } from '../lib/session';
 import {
   Swords,
   Send,
@@ -41,7 +42,12 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({
   onOpenDepositionModal,
 }) => {
   const [activePersona, setActivePersona] = useState<SparringPersona>('cross_examiner');
-  const [messages, setMessages] = useState<SparringMessage[]>([]);
+  const [messages, setMessages] = useState<SparringMessage[]>(() => note.session?.sparring?.cross_examiner ?? []);
+  const noteRef = useRef(note);
+  noteRef.current = note;
+  const updateRef = useRef(onUpdateNote);
+  updateRef.current = onUpdateNote;
+  const skipSparPersist = useRef(true);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDiscoveringCounter, setIsDiscoveringCounter] = useState(false);
@@ -74,6 +80,22 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({
     witnessAssessment: string;
     defenseClauses?: DefenseClause[];
   } | null>(null);
+
+  useEffect(() => {
+    skipSparPersist.current = true;
+    setMessages(note.session?.sparring?.[activePersona] ?? []);
+  }, [note.id, activePersona]);
+
+  useEffect(() => {
+    if (skipSparPersist.current) {
+      skipSparPersist.current = false;
+      return;
+    }
+    const current = noteRef.current;
+    updateRef.current(withSession(current, {
+      sparring: { [activePersona]: messages },
+    }));
+  }, [messages, activePersona]);
 
   if (!isOpen) return null;
 

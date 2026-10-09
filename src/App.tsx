@@ -77,6 +77,15 @@ export default function App() {
     return notes.find((n) => n.id === activeNoteId) || notes[0];
   }, [notes, activeNoteId]);
 
+  // Sync document title to CogniVault
+  useEffect(() => {
+    if (activeNote?.title) {
+      document.title = `${activeNote.title} · CogniVault`;
+    } else {
+      document.title = 'CogniVault';
+    }
+  }, [activeNote?.title]);
+
   // Update note handler
   const handleUpdateNote = (updated: DocumentNote) => {
     setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
@@ -86,7 +95,7 @@ export default function App() {
   const handleNewNote = () => {
     const newNote: DocumentNote = {
       id: `note-${Date.now()}`,
-      title: 'Untitled Legal / Policy Thesis',
+      title: 'New Legal / Policy Thesis',
       intellectualDomains: ['criminal-justice', 'public-policy'],
       epistemicStatus: 'unchallenged',
       resilienceScore: 35,
@@ -96,7 +105,7 @@ export default function App() {
       supportingPillars: [],
       counterEvidence: [],
       logicLintIssues: [],
-      content: `# Untitled Legal / Policy Thesis\n\n## Central Thesis Statement\nState your bold, falsifiable legal, psychological, or policy claim here...\n\n## 1. Statutory & Evidentiary Pillars\n- Evidentiary Standard: \n- Key Case Law / Precedent: \n\n## 2. Anticipated Defense Objections & Administrative Bottlenecks\n- What will opposing counsel or fiscal comptrollers argue?`,
+      content: `# New Legal / Policy Thesis\n\n## Central Thesis Statement\nState your bold, falsifiable legal, psychological, or policy claim here...\n\n## 1. Statutory & Evidentiary Pillars\n- Evidentiary Standard: \n- Key Case Law / Precedent: \n\n## 2. Anticipated Defense Objections & Administrative Bottlenecks\n- What will opposing counsel or fiscal comptrollers argue?`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

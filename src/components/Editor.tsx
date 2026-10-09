@@ -251,7 +251,7 @@ export const Editor: React.FC<EditorProps> = ({
               type="text"
               value={note.title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Untitled Research Thesis..."
+              placeholder="CogniVault Research Thesis..."
               className="flex-1 min-w-0 truncate text-xl font-bold tracking-tight text-slate-100 placeholder:text-slate-600 bg-transparent border-0 p-0 focus:outline-none focus:ring-0"
               title={note.title}
             />

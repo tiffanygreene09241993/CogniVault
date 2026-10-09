@@ -133,7 +133,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         {/* Real-time Cognitive Telemetry Bar */}
         <div className="flex items-center gap-2.5 text-xs font-mono tabular-nums text-slate-400 truncate max-w-xl">
           <span className="text-slate-200 font-sans font-medium truncate max-w-[140px]" title={activeNoteTitle}>
-            {activeNoteTitle || 'Untitled'}
+            {activeNoteTitle || 'CogniVault Thesis'}
           </span>
 
           <span aria-hidden="true" className="text-slate-700">·</span>

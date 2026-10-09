@@ -246,7 +246,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         isActive ? 'text-slate-100' : 'text-slate-300 group-hover:text-slate-100'
                       }`}
                     >
-                      {note.title || 'Untitled Thesis'}
+                      {note.title || 'CogniVault Thesis'}
                     </h4>
                   </div>
 

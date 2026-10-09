@@ -124,7 +124,7 @@ Look specifically for:
 
 CRITICAL: For each issue, provide a concrete Inoculation Defense Clause (statutory citation and precise defensive language) that inoculates the draft. Extract verbatim substrings for the "passage" field.
 
-Document Title: ${title || 'Untitled'}
+Document Title: ${title || 'CogniVault Thesis'}
 Content:
 ${content}
 
@@ -273,7 +273,7 @@ MANDATORY RESPONSE REQUIREMENTS:
    Conclude by formulating 1–2 concrete defensive clauses, evidentiary safeguards, or statutory citations the user can immediately insert into their text to inoculate the draft against real-world attack.
 
 Document Context:
-Title: "${noteTitle || 'Untitled'}"
+Title: "${noteTitle || 'CogniVault Thesis'}"
 Declared Falsifiability Criterion: "${falsifiabilityCriterion || 'NONE DECLARED YET'}"
 Document Excerpt:
 ${(noteContent || '').slice(0, 2500)}
@@ -462,7 +462,7 @@ Your autopsy must detail:
 3. Year 3: Fiscal Cliff, Legal Injunction, or Backlash Shock (How grant expiration, union litigation, or high-profile anomalies froze the program).
 4. Provide 3-4 concrete, legal-grade DEFENSIVE POLICY CLAUSES to insert into the draft right now to insulate the program against these exact failure modes.
 
-Proposal Title: "${title || 'Untitled Proposal'}"
+Proposal Title: "${title || 'CogniVault Proposal'}"
 Domains: ${Array.isArray(intellectualDomains) ? intellectualDomains.join(', ') : 'Criminal Justice & Public Administration'}
 Content:
 ${(content || '').slice(0, 3000)}
@@ -593,7 +593,7 @@ app.post('/api/gemini/counter-evidence', async (req: Request, res: Response) => 
 
 Given this research premise in criminal justice, forensic psychology, or public administration, discover 2-3 genuine published empirical studies, landmark circuit decisions, or meta-analyses that challenge or qualify this conclusion.
 
-Title: "${title || 'Untitled'}"
+Title: "${title || 'CogniVault Thesis'}"
 Domains: ${Array.isArray(intellectualDomains) ? intellectualDomains.join(', ') : 'Interdisciplinary'}
 Content:
 ${(content || '').slice(0, 2500)}

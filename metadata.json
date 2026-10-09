@@ -1,6 +1,6 @@
 {
-  "name": "CogniVault — AI Research & Knowledge Workspace",
-  "description": "A modern, distraction-free document and research studio combining structured markdown writing with Gemini-powered deep synthesis, automated outlines, critique, and knowledge graphs.",
+  "name": "CogniVault",
+  "description": "In-App Adversarial Crucible & Sparring Agent for Criminal Justice, Forensic Psychology, and Public Administration/Policy. Rigorous stress-testing of briefs, evaluations, and policy proposals.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

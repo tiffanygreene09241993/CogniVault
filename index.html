@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Suppress benign Vite HMR WebSocket connection errors in sandbox iframe environment
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event && event.reason;
+        var msg = reason ? String(reason.message || reason) : '';
+        var stack = reason ? String(reason.stack || '') : '';
+        if (msg.indexOf('WebSocket') !== -1 || stack.indexOf('@vite/client') !== -1) {
+          event.preventDefault();
+        }
+      });
+      window.addEventListener('error', function(event) {
+        var msg = event ? String(event.message || '') : '';
+        var filename = event ? String(event.filename || '') : '';
+        if (msg.indexOf('WebSocket') !== -1 || filename.indexOf('@vite/client') !== -1) {
+          event.preventDefault();
+        }
+      });
+    </script>
+    <title>CogniVault</title>
+    <meta name="application-name" content="CogniVault" />
+    <meta name="apple-mobile-web-app-title" content="CogniVault" />
+    <meta name="description" content="An adversarial research workspace for Criminal Justice, Forensic Psychology, and Public Policy. CogniVault replaces sycophantic AI with non-sycophantic personas (The Hostile Cross-Examiner, The Bureaucratic Realist, The Empirical Criminologist) to stress-test research briefs, courtroom depositions, and policy memos under Daubert standards, grant cliffs, and statistical controls." />
+    <meta property="og:title" content="CogniVault" />
+    <meta property="og:site_name" content="CogniVault" />
+    <meta property="og:description" content="An adversarial research workspace for Criminal Justice, Forensic Psychology, and Public Policy. CogniVault replaces sycophantic AI with non-sycophantic personas (The Hostile Cross-Examiner, The Bureaucratic Realist, The Empirical Criminologist) to stress-test research briefs, courtroom depositions, and policy memos under Daubert standards, grant cliffs, and statistical controls." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:title" content="CogniVault" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

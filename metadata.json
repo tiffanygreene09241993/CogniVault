@@ -1,0 +1,6 @@
+{
+  "name": "CogniVault",
+  "description": "An adversarial research workspace for Criminal Justice, Forensic Psychology, and Public Policy. CogniVault replaces sycophantic AI with non-sycophantic personas (The Hostile Cross-Examiner, The Bureaucratic Realist, The Empirical Criminologist) to stress-test research briefs, courtroom depositions, and policy memos under Daubert standards, grant cliffs, and statistical controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

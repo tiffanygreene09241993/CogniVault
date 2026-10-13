@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { readVault, restoreVaultBackup, writeVault } from './src/server/vaultStore';
 import { assertPromptBudget, HttpError, optionalString, requireObject } from './src/server/validate';
+import { rateLimit, extractDOISafe, stripHtml } from './src/server/security';
 
 process.env.DISABLE_HMR = 'true';
 dotenv.config();
@@ -33,6 +34,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
+app.use('/api/', rateLimit);
 
 // Helper to get GoogleGenAI client
 function getAIClient(): GoogleGenAI {
@@ -664,10 +666,9 @@ app.post('/api/citations/parse', async (req: Request, res: Response) => {
     }
 
     const trimmed = input.trim();
-    // Check if DOI
-    const doiMatch = trimmed.match(/(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/i);
-    if (doiMatch) {
-      const doi = doiMatch[1].replace(/[.,;)]+$/, '');
+    // Check if DOI (length-bounded to avoid ReDoS)
+    const doi = extractDOISafe(trimmed);
+    if (doi) {
       try {
         const crossrefRes = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
           headers: { 'User-Agent': 'CogniVault/1.0 (mailto:admin@cognivault.local)' },
@@ -682,7 +683,7 @@ app.post('/api/citations/parse', async (req: Request, res: Response) => {
           const year = item.created?.['date-parts']?.[0]?.[0] || item.published?.['date-parts']?.[0]?.[0] || '';
           const container = Array.isArray(item['container-title']) ? item['container-title'][0] : '';
           const url = item.URL || `https://doi.org/${doi}`;
-          const abstract = item.abstract ? item.abstract.replace(/<[^>]+>/g, '').slice(0, 300) : '';
+          const abstract = item.abstract ? stripHtml(item.abstract) : '';
 
           res.json({
             success: true,

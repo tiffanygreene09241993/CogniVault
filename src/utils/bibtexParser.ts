@@ -189,7 +189,7 @@ export async function resolveDOI(rawDoi: string): Promise<ParsedCitation | null>
       const year = item.created?.['date-parts']?.[0]?.[0] || item.published?.['date-parts']?.[0]?.[0] || '';
       const container = Array.isArray(item['container-title']) ? item['container-title'][0] : '';
       const url = item.URL || `https://doi.org/${clean}`;
-      const abstract = item.abstract ? item.abstract.replace(/<[^>]+>/g, '').slice(0, 300) : '';
+      const abstract = item.abstract ? item.abstract.replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").slice(0, 300) : "";
 
       return {
         title,
